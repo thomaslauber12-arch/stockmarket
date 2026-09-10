@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Dividend Yield Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div>
+                <div class="header-title-group">
+                    <h1>Live Dividend Yield Tracker</h1>
+                    <span class="live-badge">
+                        <span class="pulse-dot"></span> LIVE
+                    </span>
+                </div>
+                <p class="subtitle">Real-time market price updates & dynamic dividend yield calculations.</p>
+            </div>
+
+            <div class="header-controls">
+                <div class="refresh-pill">
+                    Refresh: <span id="countdown" class="countdown">3s</span>
+                </div>
+                <button id="toggleFeedBtn" onclick="toggleSimulatedFeed()" class="btn-stream">Pause Stream</button>
+            </div>
+        </header>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <p class="kpi-label">Top Yielding Stock</p>
+                <h3 id="topYieldTicker" class="kpi-val green">--</h3>
+                <p id="topYieldVal" class="kpi-sub">--% Yield</p>
+            </div>
+            <div class="kpi-card">
+                <p class="kpi-label">Average Watchlist Yield</p>
+                <h3 id="avgYield" class="kpi-val">--%</h3>
+                <p class="kpi-sub">Weighted across watchlist</p>
+            </div>
+            <div class="kpi-card">
+                <p class="kpi-label">Total Tracked Stocks</p>
+                <h3 id="totalStocks" class="kpi-val">5</h3>
+                <p class="kpi-sub">Steady dividend payers</p>
+            </div>
+            <div class="kpi-card">
+                <p class="kpi-label">Market Status</p>
+                <h3 class="kpi-val green">Open / Live</h3>
+                <p class="kpi-sub">Updates every 3s</p>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-bar">
+            <input type="text" id="searchInput" oninput="renderTable()" placeholder="Search ticker or company..." class="search-input">
+            <div>
+                <label for="sectorFilter" class="kpi-label">Sector: </label>
+                <select id="sectorFilter" onchange="renderTable()" class="select-input">
+                    <option value="ALL">All Sectors</option>
+                    <option value="Real Estate">Real Estate</option>
+                    <option value="Healthcare">Healthcare</option>
+                    <option value="Financials">Financials</option>
+                    <option value="Telecommunications">Telecommunications</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <table class="stock-table">
+                <thead>
+                    <tr>
+                        <th>Company / Ticker</th>
+                        <th>Sector</th>
+                        <th onclick="sortTable('price')">Price ↕</th>
+                        <th>24h Change</th>
+                        <th>Annual Payout</th>
+                        <th onclick="sortTable('yield')">Dividend Yield ↕</th>
+                    </tr>
+                </thead>
+                <tbody id="stockTableBody">
+                    <!-- Dynamic Rows Injected Here -->
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        let stocks = [
+            { ticker: "VICI", name: "VICI Properties Inc.", sector: "Real Estate", price: 31.80, annualDividend: 2.27, prevPrice: 31.80, change: 0 },
+            { ticker: "PFE", name: "Pfizer Inc.", sector: "Healthcare", price: 28.12, annualDividend: 1.74, prevPrice: 28.12, change: 0 },
+            { ticker: "MAIN", name: "Main Street Capital", sector: "Financials", price: 49.85, annualDividend: 3.00, prevPrice: 49.85, change: 0 },
+            { ticker: "VZ", name: "Verizon Communications", sector: "Telecommunications", price: 41.25, annualDividend: 2.32, prevPrice: 41.25, change: 0 },
+            { ticker: "O", name: "Realty Income Corp.", sector: "Real Estate", price: 58.40, annualDividend: 3.15, prevPrice: 58.40, change: 0 }
+        ];
+
+        let isStreaming = true;
+        let countdownSecs = 3;
+        let sortColumn = 'yield';
+        let sortAsc = false;
+
+        function calculateYield(stock) {
+            return ((stock.annualDividend / stock.price) * 100).toFixed(2);
+        }
+
+        function renderTable() {
+            const tableBody = document.getElementById("stockTableBody");
+            const searchVal = document.getElementById("searchInput").value.toLowerCase();
+            const sectorVal = document.getElementById("sectorFilter").value;
+
+            let filtered = stocks.filter(stock => {
+                const matchesSearch = stock.ticker.toLowerCase().includes(searchVal) || stock.name.toLowerCase().includes(searchVal);
+                const matchesSector = sectorVal === "ALL" || stock.sector === sectorVal;
+                return matchesSearch && matchesSector;
+            });
+
+            filtered.sort((a, b) => {
+                let valA = sortColumn === 'yield' ? (a.annualDividend / a.price) : a.price;
+                let valB = sortColumn === 'yield' ? (b.annualDividend / b.price) : b.price;
+                return sortAsc ? valA - valB : valB - valA;
+            });
+
+            tableBody.innerHTML = "";
+
+            filtered.forEach(stock => {
+                const yieldVal = calculateYield(stock);
+                const isPositive = stock.change >= 0;
+                const changeClass = isPositive ? "text-green" : "text-red";
+                const changeSign = isPositive ? "+" : "";
+
+                const row = document.createElement("tr");
+                row.id = `row-${stock.ticker}`;
+
+                row.innerHTML = `
+                    <td>
+                        <strong>${stock.ticker}</strong>
+                        <div class="ticker-name">${stock.name}</div>
+                    </td>
+                    <td>${stock.sector}</td>
+                    <td class="font-mono">$${stock.price.toFixed(2)}</td>
+                    <td class="font-mono ${changeClass}">${changeSign}${stock.change.toFixed(2)}%</td>
+                    <td class="font-mono">$${stock.annualDividend.toFixed(2)} / yr</td>
+                    <td class="font-mono text-green" style="font-weight: bold; font-size: 1rem;">${yieldVal}%</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            updateKPIs();
+        }
+
+        function updateKPIs() {
+            let sortedByYield = [...stocks].sort((a, b) => (b.annualDividend / b.price) - (a.annualDividend / a.price));
+            const top = sortedByYield[0];
+            document.getElementById("topYieldTicker").innerText = top.ticker;
+            document.getElementById("topYieldVal").innerText = `${calculateYield(top)}% Yield`;
+
+            const totalYield = stocks.reduce((acc, s) => acc + parseFloat(calculateYield(s)), 0);
+            document.getElementById("avgYield").innerText = `${(totalYield / stocks.length).toFixed(2)}%`;
+            document.getElementById("totalStocks").innerText = stocks.length;
+        }
+
+        function sortTable(column) {
+            if (sortColumn === column) {
+                sortAsc = !sortAsc;
+            } else {
+                sortColumn = column;
+                sortAsc = false;
+            }
+            renderTable();
+        }
+
+        function simulateMarketTick() {
+            if (!isStreaming) return;
+
+            const randomIndex = Math.floor(Math.random() * stocks.length);
+            const stock = stocks[randomIndex];
+
+            const deltaPercent = (Math.random() * 0.8 - 0.4) / 100;
+            const newPrice = Math.max(1, stock.price * (1 + deltaPercent));
+
+            const isUp = newPrice >= stock.price;
+            stock.change = ((newPrice - stock.prevPrice) / stock.prevPrice) * 100;
+            stock.price = newPrice;
+
+            renderTable();
+
+            const rowElem = document.getElementById(`row-${stock.ticker}`);
+            if (rowElem) {
+                rowElem.classList.remove("flash-up", "flash-down");
+                void rowElem.offsetWidth;
+                rowElem.classList.add(isUp ? "flash-up" : "flash-down");
+            }
+        }
+
+        function toggleSimulatedFeed() {
+            isStreaming = !isStreaming;
+            const btn = document.getElementById("toggleFeedBtn");
+            btn.innerText = isStreaming ? "Pause Stream" : "Resume Stream";
+        }
+
+        setInterval(() => {
+            if (isStreaming) {
+                countdownSecs--;
+                if (countdownSecs <= 0) {
+                    simulateMarketTick();
+                    countdownSecs = 3;
+                }
+                document.getElementById("countdown").innerText = `${countdownSecs}s`;
+            }
+        }, 1000);
+
+        window.onload = renderTable;
+    </script>
+</body>
+</html>
