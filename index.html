@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StockMarket - Live Dividend Dashboard</title>
+    <title>StockMarket - Top Dividend Yield Tracker</title>
     
-    <!-- Tailwind CSS CDN -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -13,210 +13,179 @@
             theme: {
                 extend: {
                     colors: {
-                        darkbg: '#0B0F17',
-                        cardbg: '#111827',
-                        cardborder: '#1F2937',
+                        darkbg: '#0F172A',
+                        cardbg: '#1E293B',
+                        cardborder: '#334155',
                         accentgreen: '#10B981',
-                        accentred: '#EF4444',
-                        accentblue: '#3B82F6'
+                        accentred: '#EF4444'
                     }
                 }
             }
         }
     </script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @keyframes flashGreen {
-            0% { background-color: rgba(16, 185, 129, 0.3); }
+            0% { background-color: rgba(16, 185, 129, 0.35); }
             100% { background-color: transparent; }
         }
         @keyframes flashRed {
-            0% { background-color: rgba(239, 68, 68, 0.3); }
+            0% { background-color: rgba(239, 68, 68, 0.35); }
             100% { background-color: transparent; }
         }
         .flash-up { animation: flashGreen 1s ease-out; }
         .flash-down { animation: flashRed 1s ease-out; }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0B0F17; }
-        ::-webkit-scrollbar-thumb { background: #1F2937; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-darkbg text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+<body class="bg-darkbg text-slate-100 font-sans min-h-screen flex flex-col antialiased">
 
-    <!-- Top TradingView Real-Time Ticker Ribbon -->
-    <div class="w-full bg-slate-900 border-b border-cardborder overflow-hidden text-xs">
-        <div class="tradingview-widget-container">
-            <div class="tradingview-widget-container__widget"></div>
-            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-            {
-                "symbols": [
-                    { "proName": "FOREXCOM:SPXUSD", "title": "S&P 500 Index" },
-                    { "description": "VICI Properties", "proName": "NYSE:VICI" },
-                    { "description": "Pfizer Inc.", "proName": "NYSE:PFE" },
-                    { "description": "Main Street Cap", "proName": "NYSE:MAIN" },
-                    { "description": "Verizon", "proName": "NYSE:VZ" },
-                    { "description": "Realty Income", "proName": "NYSE:O" }
-                ],
-                "showSymbolLogo": true,
-                "colorTheme": "dark",
-                "isTransparent": true,
-                "displayMode": "adaptive",
-                "locale": "en"
-            }
-            </script>
-        </div>
-    </div>
-
-    <!-- App Header Nav -->
-    <header class="sticky top-0 z-30 bg-cardbg/80 backdrop-blur-md border-b border-cardborder px-4 lg:px-8 py-3">
-        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            
-            <!-- Logo -->
+    <!-- Header Navigation -->
+    <header class="bg-cardbg border-b border-cardborder px-4 lg:px-8 py-4 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-tr from-indigo-600 to-emerald-500 p-2 rounded-xl shadow-lg shadow-indigo-500/10">
-                    <i data-lucide="trending-up" class="w-5 h-5 text-white"></i>
-                </div>
+                <div class="bg-indigo-600 text-white p-2 rounded-xl font-bold text-lg">📈</div>
                 <div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-bold text-lg tracking-tight text-white">StockMarket</span>
-                        <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">LIVE</span>
-                    </div>
+                    <h1 class="font-bold text-lg text-white leading-none">StockMarket</h1>
+                    <span class="text-[10px] text-emerald-400 font-semibold tracking-wider uppercase">Live Dividend Streamer</span>
                 </div>
             </div>
 
-            <!-- Nav Tabs -->
-            <nav class="hidden md:flex items-center gap-1 bg-darkbg p-1 rounded-xl border border-cardborder text-xs font-semibold">
-                <button onclick="switchTab('screener')" id="tab-screener" class="nav-btn px-4 py-2 rounded-lg bg-indigo-600 text-white transition">Top Dividends</button>
-                <button onclick="switchTab('heatmap')" id="tab-heatmap" class="nav-btn px-4 py-2 rounded-lg text-slate-400 hover:text-white transition">Market Heatmap</button>
-                <button onclick="switchTab('watchlist')" id="tab-watchlist" class="nav-btn px-4 py-2 rounded-lg text-slate-400 hover:text-white transition">My Watchlist</button>
-            </nav>
-
-            <!-- User Auth Bar -->
-            <div id="authStatusContainer" class="flex items-center gap-3">
-                <!-- Dynamically populated via JavaScript -->
+            <!-- User Auth Profile Bar -->
+            <div id="userBar" class="flex items-center gap-3">
+                <!-- Injected via JS -->
             </div>
         </div>
     </header>
 
-    <!-- MAIN APP CONTENT (AUTH GATED) -->
+    <!-- Main Content Area -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
 
-        <!-- TAB 1: Dividend Screener View -->
-        <section id="view-screener" class="space-y-6">
-            
-            <!-- Hero Stats -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-cardbg p-5 rounded-2xl border border-cardborder shadow-sm">
-                    <p class="text-xs font-medium text-slate-400">Highest Dividend Yield</p>
-                    <h3 id="topYieldTicker" class="text-2xl font-bold text-emerald-400 mt-1">--</h3>
-                    <p id="topYieldVal" class="text-xs text-slate-400 mt-1">--% Yield</p>
-                </div>
-                <div class="bg-cardbg p-5 rounded-2xl border border-cardborder shadow-sm">
-                    <p class="text-xs font-medium text-slate-400">Average Screener Yield</p>
-                    <h3 id="avgYield" class="text-2xl font-bold text-white mt-1">--%</h3>
-                    <p class="text-xs text-slate-400 mt-1">Top high-cap watchlist average</p>
-                </div>
-                <div class="bg-cardbg p-5 rounded-2xl border border-cardborder shadow-sm">
-                    <p class="text-xs font-medium text-slate-400">Total Tracked Equities</p>
-                    <h3 id="totalStocks" class="text-2xl font-bold text-white mt-1">5</h3>
-                    <p class="text-xs text-slate-400 mt-1">Filtered by financial stability</p>
-                </div>
-                <div class="bg-cardbg p-5 rounded-2xl border border-cardborder shadow-sm">
-                    <p class="text-xs font-medium text-slate-400">Feed Status</p>
-                    <div class="flex items-center justify-between mt-1">
-                        <span class="text-2xl font-bold text-emerald-400">Active</span>
-                        <span id="countdown" class="text-xs font-mono bg-slate-800 text-amber-400 border border-slate-700 px-2 py-1 rounded-md">3s</span>
-                    </div>
-                    <p class="text-xs text-slate-400 mt-1">Live price tick recalculation</p>
-                </div>
+        <!-- Top Metrics Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-cardbg p-5 rounded-2xl border border-cardborder shadow-sm">
+                <p class="text-xs font-medium text-slate-400">Top Yielding Dividend Stock</p>
+                <h3 id="kpiTopTicker" class="text-2xl font-bold text-emerald-400 mt-1">--</h3>
+                <p id="kpiTopYield" class="text-xs text-slate-400 mt-1">--% Yield</p>
             </div>
+            <div class="bg-cardbg p-5 rounded-2xl border border-cardborder shadow-sm">
+                <p class="text-xs font-medium text-slate-400">Average Watchlist Yield</p>
+                <h3 id="kpiAvgYield" class="text-2xl font-bold text-white mt-1">--%</h3>
+                <p class="text-xs text-slate-400 mt-1">Weighted average across list</p>
+            </div>
+            <div class="bg-cardbg p-5 rounded-2xl border border-cardborder shadow-sm">
+                <p class="text-xs font-medium text-slate-400">Total Tracked Stocks</p>
+                <h3 id="kpiTotal" class="text-2xl font-bold text-white mt-1">5</h3>
+                <p class="text-xs text-slate-400 mt-1">High-cap dividend payers</p>
+            </div>
+            <div class="bg-cardbg p-5 rounded-2xl border border-cardborder shadow-sm">
+                <p class="text-xs font-medium text-slate-400">Feed Status</p>
+                <div class="flex items-center justify-between mt-1">
+                    <span class="text-2xl font-bold text-emerald-400">LIVE</span>
+                    <span id="countdownTimer" class="font-mono text-xs bg-slate-800 text-amber-400 border border-slate-700 px-2 py-1 rounded-md">3s</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-1">Real-time tick recalculation</p>
+            </div>
+        </div>
 
-            <!-- Controls & Filters -->
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div class="relative w-full sm:w-80">
-                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
-                    <input type="text" id="searchInput" oninput="renderTable()" placeholder="Search ticker or company name..." class="w-full bg-cardbg border border-cardborder rounded-xl pl-9 pr-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
-                </div>
-                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-                    <select id="sectorFilter" onchange="renderTable()" class="bg-cardbg border border-cardborder rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
-                        <option value="ALL">All Sectors</option>
-                        <option value="Real Estate">Real Estate</option>
-                        <option value="Healthcare">Healthcare</option>
-                        <option value="Financials">Financials</option>
-                        <option value="Telecommunications">Telecommunications</option>
-                    </select>
-                </div>
-            </div>
+        <!-- Filter & Search Bar -->
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <input type="text" id="searchInput" oninput="renderTable()" placeholder="Search ticker or company name..." class="w-full sm:w-80 bg-cardbg border border-cardborder rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+            <select id="sectorFilter" onchange="renderTable()" class="w-full sm:w-auto bg-cardbg border border-cardborder rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                <option value="ALL">All Sectors</option>
+                <option value="Real Estate">Real Estate</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Financials">Financials</option>
+                <option value="Telecommunications">Telecommunications</option>
+            </select>
+        </div>
 
-            <!-- Top 5 Dividend Table -->
-            <div class="bg-cardbg rounded-2xl border border-cardborder overflow-hidden shadow-xl">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-900/80 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-cardborder">
-                            <tr>
-                                <th class="py-4 px-6">Company / Ticker</th>
-                                <th class="py-4 px-6">Sector</th>
-                                <th class="py-4 px-6 cursor-pointer hover:text-white" onclick="sortTable('price')">Price ↕</th>
-                                <th class="py-4 px-6">24h Change</th>
-                                <th class="py-4 px-6">Annual Payout</th>
-                                <th class="py-4 px-6 cursor-pointer hover:text-white" onclick="sortTable('yield')">Dividend Yield ↕</th>
-                                <th class="py-4 px-6 text-right">Watchlist</th>
-                            </tr>
-                        </thead>
-                        <tbody id="stockTableBody" class="divide-y divide-cardborder text-slate-200">
-                            <!-- Injected JS -->
-                        </tbody>
-                    </table>
-                </div>
+        <!-- Live Dividend Stock Table -->
+        <div class="bg-cardbg rounded-2xl border border-cardborder overflow-hidden shadow-xl">
+            <div class="p-3 bg-slate-900/60 border-b border-cardborder text-xs text-slate-400 flex items-center justify-between">
+                <span>💡 <b>Tip:</b> Click on any stock row to view AI Buy/Sell signal & analysis.</span>
             </div>
-        </section>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-900/80 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-cardborder">
+                        <tr>
+                            <th class="py-4 px-6">Company / Ticker</th>
+                            <th class="py-4 px-6">Sector</th>
+                            <th class="py-4 px-6 cursor-pointer hover:text-white" onclick="sortTable('price')">Price ↕</th>
+                            <th class="py-4 px-6">24h Change</th>
+                            <th class="py-4 px-6">Annual Payout</th>
+                            <th class="py-4 px-6 cursor-pointer hover:text-white" onclick="sortTable('yield')">Dividend Yield ↕</th>
+                            <th class="py-4 px-6 text-right">Watchlist</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockTableBody" class="divide-y divide-cardborder text-slate-200">
+                        <!-- Injected via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-        <!-- TAB 2: Market Heatmap View (TradingView Embed) -->
-        <section id="view-heatmap" class="hidden space-y-4">
-            <div class="bg-cardbg p-4 rounded-2xl border border-cardborder h-[650px]">
-                <div class="tradingview-widget-container h-full">
-                    <div class="tradingview-widget-container__widget h-full"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js" async>
-                    {
-                        "exchanges": [],
-                        "dataSource": "SPX500",
-                        "grouping": "sector",
-                        "blockSize": "market_cap_basic",
-                        "blockColor": "change",
-                        "locale": "en",
-                        "symbolUrl": "",
-                        "colorTheme": "dark",
-                        "hasTopBar": false,
-                        "isDataSetEnabled": false,
-                        "isZoomEnabled": true,
-                        "hasSymbolTooltip": true,
-                        "width": "100%",
-                        "height": "100%"
-                    }
-                    </script>
-                </div>
+        <!-- Watchlist Section -->
+        <div id="watchlistSection" class="bg-cardbg p-6 rounded-2xl border border-cardborder space-y-4">
+            <h2 class="text-xl font-bold text-white">Your Saved Watchlist</h2>
+            <div id="watchlistContainer" class="space-y-3">
+                <!-- Injected via JavaScript -->
             </div>
-        </section>
-
-        <!-- TAB 3: User Watchlist View -->
-        <section id="view-watchlist" class="hidden space-y-4">
-            <div class="bg-cardbg p-6 rounded-2xl border border-cardborder space-y-4">
-                <div class="flex items-center justify-between border-b border-cardborder pb-4">
-                    <div>
-                        <h2 class="text-xl font-bold text-white">Your Saved Watchlist</h2>
-                        <p class="text-xs text-slate-400 mt-0.5">Persisted to your registered user account.</p>
-                    </div>
-                </div>
-                <div id="watchlistContent" class="space-y-3">
-                    <!-- Dynamic Watchlist Items -->
-                </div>
-            </div>
-        </section>
+        </div>
 
     </main>
+
+    <!-- BUY / SELL STOCK ANALYSIS MODAL -->
+    <div id="analysisModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-cardbg border border-cardborder rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-6 relative">
+            <button onclick="closeAnalysisModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+            
+            <div class="flex items-center gap-4">
+                <div id="modalTickerBadge" class="bg-indigo-600 text-white font-bold text-xl px-4 py-2 rounded-xl">--</div>
+                <div>
+                    <h2 id="modalStockName" class="text-xl font-bold text-white">--</h2>
+                    <p id="modalStockSector" class="text-xs text-slate-400">--</p>
+                </div>
+            </div>
+
+            <!-- BUY / SELL SIGNAL BANNER -->
+            <div id="signalContainer" class="p-4 rounded-xl border flex items-center justify-between">
+                <div>
+                    <p class="text-xs uppercase tracking-wider font-semibold opacity-80">Recommendation</p>
+                    <h3 id="signalText" class="text-2xl font-black">--</h3>
+                </div>
+                <div id="signalBadge" class="text-3xl">🎯</div>
+            </div>
+
+            <!-- Key Ratios & Data Grid -->
+            <div class="grid grid-cols-2 gap-3 text-xs">
+                <div class="bg-darkbg p-3 rounded-xl border border-cardborder">
+                    <span class="text-slate-400 block">Current Price</span>
+                    <span id="modalPrice" class="text-sm font-bold text-white font-mono">$--</span>
+                </div>
+                <div class="bg-darkbg p-3 rounded-xl border border-cardborder">
+                    <span class="text-slate-400 block">Dividend Yield</span>
+                    <span id="modalYield" class="text-sm font-bold text-emerald-400 font-mono">--%</span>
+                </div>
+                <div class="bg-darkbg p-3 rounded-xl border border-cardborder">
+                    <span class="text-slate-400 block">Estimated Fair Value</span>
+                    <span id="modalFairValue" class="text-sm font-bold text-slate-200 font-mono">$--</span>
+                </div>
+                <div class="bg-darkbg p-3 rounded-xl border border-cardborder">
+                    <span class="text-slate-400 block">Payout Safety Rating</span>
+                    <span id="modalSafety" class="text-sm font-bold text-indigo-400 font-mono">--</span>
+                </div>
+            </div>
+
+            <!-- Detailed Rationale -->
+            <div class="space-y-2">
+                <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Analysis & Rationale</h4>
+                <p id="modalReason" class="text-xs text-slate-300 leading-relaxed bg-darkbg p-3.5 rounded-xl border border-cardborder">
+                    --
+                </p>
+            </div>
+
+            <button onclick="closeAnalysisModal()" class="w-full bg-slate-800 hover:bg-slate-700 border border-cardborder text-white py-2.5 rounded-xl text-xs font-semibold">Close Analysis</button>
+        </div>
+    </div>
 
     <!-- AUTH MODAL (SIGN IN / CREATE ACCOUNT) -->
     <div id="authModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -224,119 +193,125 @@
             
             <div class="text-center space-y-2">
                 <div class="inline-flex bg-indigo-600/20 p-3 rounded-2xl border border-indigo-500/30 mb-1">
-                    <i data-lucide="lock" class="w-6 h-6 text-indigo-400"></i>
+                    <span class="text-2xl">🔒</span>
                 </div>
-                <h2 class="text-2xl font-bold text-white tracking-tight">Welcome to StockMarket</h2>
+                <h2 class="text-2xl font-bold text-white">Welcome to StockMarket</h2>
                 <p class="text-xs text-slate-400">Create an account or sign in to access live stock streaming and saved watchlists.</p>
             </div>
 
-            <!-- Auth Form Switcher Tabs -->
+            <!-- Auth Switcher -->
             <div class="flex bg-darkbg p-1 rounded-xl border border-cardborder text-xs font-semibold">
-                <button id="btn-tab-login" onclick="switchAuthTab('login')" class="w-1/2 py-2 rounded-lg bg-indigo-600 text-white transition">Sign In</button>
-                <button id="btn-tab-signup" onclick="switchAuthTab('signup')" class="w-1/2 py-2 rounded-lg text-slate-400 hover:text-white transition">Create Account</button>
+                <button id="tabLoginBtn" onclick="switchAuthMode('login')" class="w-1/2 py-2 rounded-lg bg-indigo-600 text-white">Sign In</button>
+                <button id="tabSignupBtn" onclick="switchAuthMode('signup')" class="w-1/2 py-2 rounded-lg text-slate-400">Create Account</button>
             </div>
 
             <!-- Login Form -->
             <form id="loginForm" onsubmit="handleAuth(event, 'login')" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Email Address</label>
-                    <input type="email" id="loginEmail" required placeholder="name@example.com" class="w-full bg-darkbg border border-cardborder rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                    <input type="email" id="loginEmail" required placeholder="user@example.com" class="w-full bg-darkbg border border-cardborder rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
                     <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full bg-darkbg border border-cardborder rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl text-sm font-semibold transition shadow-lg shadow-indigo-600/20">Sign In to Dashboard</button>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl text-sm font-semibold transition">Sign In</button>
             </form>
 
             <!-- Signup Form -->
             <form id="signupForm" onsubmit="handleAuth(event, 'signup')" class="space-y-4 hidden">
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Full Name</label>
-                    <input type="text" id="signupName" required placeholder="Alex Investor" class="w-full bg-darkbg border border-cardborder rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                    <input type="text" id="signupName" required placeholder="Investor Name" class="w-full bg-darkbg border border-cardborder rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Email Address</label>
-                    <input type="email" id="signupEmail" required placeholder="name@example.com" class="w-full bg-darkbg border border-cardborder rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                    <input type="email" id="signupEmail" required placeholder="user@example.com" class="w-full bg-darkbg border border-cardborder rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
                     <input type="password" id="signupPassword" required minlength="6" placeholder="At least 6 characters" class="w-full bg-darkbg border border-cardborder rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-semibold transition shadow-lg shadow-emerald-600/20">Create Free Account</button>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-semibold transition">Create Free Account</button>
             </form>
 
             <p id="authError" class="text-xs text-rose-400 text-center hidden"></p>
-
         </div>
     </div>
 
+    <!-- Application Script -->
     <script>
-        // Data & Application State
         let stocks = [
-            { ticker: "VICI", name: "VICI Properties Inc.", sector: "Real Estate", price: 31.80, annualDividend: 2.27, prevPrice: 31.80, change: 0 },
-            { ticker: "PFE", name: "Pfizer Inc.", sector: "Healthcare", price: 28.12, annualDividend: 1.74, prevPrice: 28.12, change: 0 },
-            { ticker: "MAIN", name: "Main Street Capital", sector: "Financials", price: 49.85, annualDividend: 3.00, prevPrice: 49.85, change: 0 },
-            { ticker: "VZ", name: "Verizon Communications", sector: "Telecommunications", price: 41.25, annualDividend: 2.32, prevPrice: 41.25, change: 0 },
-            { ticker: "O", name: "Realty Income Corp.", sector: "Real Estate", price: 58.40, annualDividend: 3.15, prevPrice: 58.40, change: 0 }
+            { ticker: "VICI", name: "VICI Properties Inc.", sector: "Real Estate", price: 31.80, annualDividend: 2.27, prevPrice: 31.80, change: 0, fairValue: 34.50, safety: "92/100 (Very Safe)" },
+            { ticker: "PFE", name: "Pfizer Inc.", sector: "Healthcare", price: 28.12, annualDividend: 1.74, prevPrice: 28.12, change: 0, fairValue: 32.00, safety: "81/100 (Safe)" },
+            { ticker: "MAIN", name: "Main Street Capital", sector: "Financials", price: 49.85, annualDividend: 3.00, prevPrice: 49.85, change: 0, fairValue: 46.00, safety: "88/100 (Safe)" },
+            { ticker: "VZ", name: "Verizon Communications", sector: "Telecommunications", price: 41.25, annualDividend: 2.32, prevPrice: 41.25, change: 0, fairValue: 44.00, safety: "85/100 (Safe)" },
+            { ticker: "O", name: "Realty Income Corp.", sector: "Real Estate", price: 58.40, annualDividend: 3.15, prevPrice: 58.40, change: 0, fairValue: 62.50, safety: "95/100 (Very Safe)" }
         ];
 
         let currentUser = null;
         let countdownSecs = 3;
         let sortColumn = 'yield';
         let sortAsc = false;
+        let selectedStockTicker = null;
 
-        // Initialize App & Auth Check
-        window.onload = () => {
-            lucide.createIcons();
-            checkAuthSession();
+        window.onload = function() {
+            checkAuth();
             renderTable();
-            startPriceStream();
+            startLiveStream();
         };
 
-        // Authentication Handlers
-        function checkAuthSession() {
-            const savedUser = localStorage.getItem("stockmarket_current_user");
+        function checkAuth() {
+            const saved = localStorage.getItem("sm_user");
             const modal = document.getElementById("authModal");
+            const userBar = document.getElementById("userBar");
 
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
+            if (saved) {
+                currentUser = JSON.parse(saved);
                 modal.classList.add("hidden");
-                renderAuthHeader();
+                userBar.innerHTML = `
+                    <div class="text-right">
+                        <div class="text-xs font-bold text-white">${currentUser.name}</div>
+                        <div class="text-[10px] text-slate-400">${currentUser.email}</div>
+                    </div>
+                    <button onclick="logout()" class="bg-slate-800 border border-cardborder text-slate-300 px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-slate-700">Sign Out</button>
+                `;
                 renderWatchlist();
             } else {
                 modal.classList.remove("hidden");
-                document.getElementById("authStatusContainer").innerHTML = `
-                    <button onclick="openAuthModal('login')" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-semibold">Sign In</button>
-                `;
+                userBar.innerHTML = `<button onclick="openModal()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-semibold">Sign In / Register</button>`;
             }
         }
 
-        function switchAuthTab(type) {
+        function openModal() {
+            document.getElementById("authModal").classList.remove("hidden");
+        }
+
+        function switchAuthMode(mode) {
             const loginForm = document.getElementById("loginForm");
             const signupForm = document.getElementById("signupForm");
-            const loginBtn = document.getElementById("btn-tab-login");
-            const signupBtn = document.getElementById("btn-tab-signup");
+            const tabLoginBtn = document.getElementById("tabLoginBtn");
+            const tabSignupBtn = document.getElementById("tabSignupBtn");
 
-            if (type === 'login') {
+            if (mode === 'login') {
                 loginForm.classList.remove("hidden");
                 signupForm.classList.add("hidden");
-                loginBtn.className = "w-1/2 py-2 rounded-lg bg-indigo-600 text-white transition";
-                signupBtn.className = "w-1/2 py-2 rounded-lg text-slate-400 hover:text-white transition";
+                tabLoginBtn.className = "w-1/2 py-2 rounded-lg bg-indigo-600 text-white";
+                tabSignupBtn.className = "w-1/2 py-2 rounded-lg text-slate-400";
             } else {
                 loginForm.classList.add("hidden");
                 signupForm.classList.remove("hidden");
-                signupBtn.className = "w-1/2 py-2 rounded-lg bg-emerald-600 text-white transition";
-                loginBtn.className = "w-1/2 py-2 rounded-lg text-slate-400 hover:text-white transition";
+                tabSignupBtn.className = "w-1/2 py-2 rounded-lg bg-emerald-600 text-white";
+                tabLoginBtn.className = "w-1/2 py-2 rounded-lg text-slate-400";
             }
         }
 
         function handleAuth(event, type) {
             event.preventDefault();
-            const errorElem = document.getElementById("authError");
-            errorElem.classList.add("hidden");
+            const err = document.getElementById("authError");
+            err.classList.add("hidden");
 
-            let users = JSON.parse(localStorage.getItem("stockmarket_users") || "[]");
+            let users = JSON.parse(localStorage.getItem("sm_users") || "[]");
 
             if (type === 'signup') {
                 const name = document.getElementById("signupName").value;
@@ -344,55 +319,37 @@
                 const password = document.getElementById("signupPassword").value;
 
                 if (users.find(u => u.email === email)) {
-                    errorElem.innerText = "An account with this email already exists.";
-                    errorElem.classList.remove("hidden");
+                    err.innerText = "Email already registered.";
+                    err.classList.remove("hidden");
                     return;
                 }
 
                 const newUser = { name, email, password, watchlist: ["VICI", "PFE"] };
                 users.push(newUser);
-                localStorage.setItem("stockmarket_users", JSON.stringify(users));
-                localStorage.setItem("stockmarket_current_user", JSON.stringify(newUser));
-                
-                checkAuthSession();
+                localStorage.setItem("sm_users", JSON.stringify(users));
+                localStorage.setItem("sm_user", JSON.stringify(newUser));
+                checkAuth();
             } else {
                 const email = document.getElementById("loginEmail").value;
                 const password = document.getElementById("loginPassword").value;
 
                 const found = users.find(u => u.email === email && u.password === password);
                 if (found) {
-                    localStorage.setItem("stockmarket_current_user", JSON.stringify(found));
-                    checkAuthSession();
+                    localStorage.setItem("sm_user", JSON.stringify(found));
+                    checkAuth();
                 } else {
-                    errorElem.innerText = "Invalid email or password.";
-                    errorElem.classList.remove("hidden");
+                    err.innerText = "Invalid credentials. Please try again or create an account.";
+                    err.classList.remove("hidden");
                 }
             }
         }
 
         function logout() {
-            localStorage.removeItem("stockmarket_current_user");
+            localStorage.removeItem("sm_user");
             currentUser = null;
-            checkAuthSession();
+            checkAuth();
         }
 
-        function renderAuthHeader() {
-            if (!currentUser) return;
-            const container = document.getElementById("authStatusContainer");
-            container.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <div class="text-right hidden sm:block">
-                        <div class="text-xs font-bold text-white">${currentUser.name}</div>
-                        <div class="text-[10px] text-slate-400">${currentUser.email}</div>
-                    </div>
-                    <button onclick="logout()" class="bg-slate-800 hover:bg-slate-700 border border-cardborder text-slate-300 px-3 py-1.5 rounded-xl text-xs font-semibold transition">
-                        Sign Out
-                    </button>
-                </div>
-            `;
-        }
-
-        // Table & Dashboard Rendering
         function calculateYield(stock) {
             return ((stock.annualDividend / stock.price) * 100).toFixed(2);
         }
@@ -402,9 +359,9 @@
             const searchVal = document.getElementById("searchInput").value.toLowerCase();
             const sectorVal = document.getElementById("sectorFilter").value;
 
-            let filtered = stocks.filter(stock => {
-                const matchesSearch = stock.ticker.toLowerCase().includes(searchVal) || stock.name.toLowerCase().includes(searchVal);
-                const matchesSector = sectorVal === "ALL" || stock.sector === sectorVal;
+            let filtered = stocks.filter(s => {
+                const matchesSearch = s.ticker.toLowerCase().includes(searchVal) || s.name.toLowerCase().includes(searchVal);
+                const matchesSector = sectorVal === "ALL" || s.sector === sectorVal;
                 return matchesSearch && matchesSector;
             });
 
@@ -426,11 +383,21 @@
 
                 const row = document.createElement("tr");
                 row.id = `row-${stock.ticker}`;
-                row.className = "hover:bg-slate-800/40 transition-colors";
+                row.className = "hover:bg-slate-800/60 transition-colors cursor-pointer";
+
+                // Click row opens analysis modal
+                row.onclick = (e) => {
+                    if (e.target.tagName !== 'BUTTON') {
+                        openAnalysisModal(stock.ticker);
+                    }
+                };
 
                 row.innerHTML = `
                     <td class="py-4 px-6">
-                        <div class="font-bold text-white">${stock.ticker}</div>
+                        <div class="font-bold text-white flex items-center gap-2">
+                            ${stock.ticker}
+                            <span class="text-[10px] font-normal text-indigo-400 bg-indigo-900/40 border border-indigo-700/50 px-1.5 py-0.5 rounded">Analyze</span>
+                        </div>
                         <div class="text-xs text-slate-400">${stock.name}</div>
                     </td>
                     <td class="py-4 px-6 text-slate-300">
@@ -438,21 +405,13 @@
                             ${stock.sector}
                         </span>
                     </td>
-                    <td class="py-4 px-6 font-mono text-white font-medium">
-                        $${stock.price.toFixed(2)}
-                    </td>
-                    <td class="py-4 px-6 font-mono text-xs ${changeClass}">
-                        ${changeSign}${stock.change.toFixed(2)}%
-                    </td>
-                    <td class="py-4 px-6 font-mono text-slate-300">
-                        $${stock.annualDividend.toFixed(2)} / yr
-                    </td>
-                    <td class="py-4 px-6 font-mono font-bold text-emerald-400 text-base">
-                        ${yieldVal}%
-                    </td>
+                    <td class="py-4 px-6 font-mono text-white font-medium">$${stock.price.toFixed(2)}</td>
+                    <td class="py-4 px-6 font-mono text-xs ${changeClass}">${changeSign}${stock.change.toFixed(2)}%</td>
+                    <td class="py-4 px-6 font-mono text-slate-300">$${stock.annualDividend.toFixed(2)} / yr</td>
+                    <td class="py-4 px-6 font-mono font-bold text-emerald-400 text-base">${yieldVal}%</td>
                     <td class="py-4 px-6 text-right">
-                        <button onclick="toggleWatchlist('${stock.ticker}')" class="p-2 rounded-xl border border-cardborder ${isWatchlisted ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-slate-800 text-slate-400 hover:text-white'}">
-                            <i data-lucide="star" class="w-4 h-4"></i>
+                        <button onclick="toggleWatchlist('${stock.ticker}')" class="px-3 py-1.5 rounded-xl border text-xs font-semibold ${isWatchlisted ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-slate-800 text-slate-400 border-cardborder'}">
+                            ${isWatchlisted ? '★ Saved' : '☆ Add'}
                         </button>
                     </td>
                 `;
@@ -460,22 +419,82 @@
             });
 
             updateKPIs();
-            lucide.createIcons();
         }
 
         function updateKPIs() {
             let sortedByYield = [...stocks].sort((a, b) => (b.annualDividend / b.price) - (a.annualDividend / a.price));
             const top = sortedByYield[0];
-            document.getElementById("topYieldTicker").innerText = top.ticker;
-            document.getElementById("topYieldVal").innerText = `${calculateYield(top)}% Yield`;
+            document.getElementById("kpiTopTicker").innerText = top.ticker;
+            document.getElementById("kpiTopYield").innerText = `${calculateYield(top)}% Yield`;
 
             const totalYield = stocks.reduce((acc, s) => acc + parseFloat(calculateYield(s)), 0);
-            document.getElementById("avgYield").innerText = `${(totalYield / stocks.length).toFixed(2)}%`;
-            document.getElementById("totalStocks").innerText = stocks.length;
+            document.getElementById("kpiAvgYield").innerText = `${(totalYield / stocks.length).toFixed(2)}%`;
+            document.getElementById("kpiTotal").innerText = stocks.length;
+        }
+
+        /* BUY / SELL ANALYSIS LOGIC */
+        function openAnalysisModal(ticker) {
+            selectedStockTicker = ticker;
+            const stock = stocks.find(s => s.ticker === ticker);
+            if (!stock) return;
+
+            const currentYield = parseFloat(calculateYield(stock));
+            const discountToFair = ((stock.fairValue - stock.price) / stock.fairValue) * 100;
+
+            let signal = "HOLD";
+            let signalClass = "bg-amber-500/10 border-amber-500/30 text-amber-400";
+            let icon = "⚖️";
+            let rationale = "";
+
+            if (discountToFair > 8 && currentYield >= 5.5) {
+                signal = "STRONG BUY";
+                signalClass = "bg-emerald-500/15 border-emerald-500/40 text-emerald-400";
+                icon = "🚀";
+                rationale = `${stock.ticker} is trading at a ${discountToFair.toFixed(1)}% discount below its fair market value ($${stock.fairValue.toFixed(2)}). Combined with a robust ${currentYield}% dividend yield and high payout safety rating, this represents an outstanding income entry point.`;
+            } else if (discountToFair > 0) {
+                signal = "BUY / ACCUMULATE";
+                signalClass = "bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
+                icon = "✅";
+                rationale = `${stock.ticker} provides a reliable ${currentYield}% dividend stream with a positive valuation upside of ${discountToFair.toFixed(1)}%. Suitable for steady dividend reinvestment.`;
+            } else if (discountToFair < -5) {
+                signal = "SELL / TRIM";
+                signalClass = "bg-rose-500/15 border-rose-500/40 text-rose-400";
+                icon = "⚠️";
+                rationale = `${stock.ticker} is trading ${Math.abs(discountToFair).toFixed(1)}% above its estimated fair value ($${stock.fairValue.toFixed(2)}). Consider taking profits or reallocating to higher-yielding dividend opportunities.`;
+            } else {
+                signal = "HOLD";
+                signalClass = "bg-amber-500/10 border-amber-500/30 text-amber-400";
+                icon = "⚖️";
+                rationale = `${stock.ticker} is currently fairly valued near $${stock.fairValue.toFixed(2)}. The current dividend yield of ${currentYield}% remains intact, making it a stable hold for current income portfolios.`;
+            }
+
+            document.getElementById("modalTickerBadge").innerText = stock.ticker;
+            document.getElementById("modalStockName").innerText = stock.name;
+            document.getElementById("modalStockSector").innerText = stock.sector;
+            
+            const container = document.getElementById("signalContainer");
+            container.className = `p-4 rounded-xl border flex items-center justify-between ${signalClass}`;
+            document.getElementById("signalText").innerText = signal;
+            document.getElementById("signalBadge").innerText = icon;
+
+            document.getElementById("modalPrice").innerText = `$${stock.price.toFixed(2)}`;
+            document.getElementById("modalYield").innerText = `${currentYield}%`;
+            document.getElementById("modalFairValue").innerText = `$${stock.fairValue.toFixed(2)}`;
+            document.getElementById("modalSafety").innerText = stock.safety;
+            document.getElementById("modalReason").innerText = rationale;
+
+            document.getElementById("analysisModal").classList.remove("hidden");
+        }
+
+        function closeAnalysisModal() {
+            document.getElementById("analysisModal").classList.add("hidden");
         }
 
         function toggleWatchlist(ticker) {
-            if (!currentUser) return;
+            if (!currentUser) {
+                openModal();
+                return;
+            }
 
             if (!currentUser.watchlist) currentUser.watchlist = [];
 
@@ -485,14 +504,13 @@
                 currentUser.watchlist.push(ticker);
             }
 
-            localStorage.setItem("stockmarket_current_user", JSON.stringify(currentUser));
+            localStorage.setItem("sm_user", JSON.stringify(currentUser));
             
-            // Sync with registered users db
-            let users = JSON.parse(localStorage.getItem("stockmarket_users") || "[]");
+            let users = JSON.parse(localStorage.getItem("sm_users") || "[]");
             const idx = users.findIndex(u => u.email === currentUser.email);
             if (idx !== -1) {
                 users[idx] = currentUser;
-                localStorage.setItem("stockmarket_users", JSON.stringify(users));
+                localStorage.setItem("sm_users", JSON.stringify(users));
             }
 
             renderTable();
@@ -500,9 +518,9 @@
         }
 
         function renderWatchlist() {
-            const container = document.getElementById("watchlistContent");
+            const container = document.getElementById("watchlistContainer");
             if (!currentUser || !currentUser.watchlist || currentUser.watchlist.length === 0) {
-                container.innerHTML = `<p class="text-sm text-slate-400">No stocks saved to your watchlist yet. Click the star icon on any stock to save it.</p>`;
+                container.innerHTML = `<p class="text-sm text-slate-400">No stocks saved to your watchlist yet.</p>`;
                 return;
             }
 
@@ -511,7 +529,13 @@
 
             savedStocks.forEach(stock => {
                 const item = document.createElement("div");
-                item.className = "flex items-center justify-between p-4 bg-darkbg rounded-xl border border-cardborder";
+                item.className = "flex items-center justify-between p-4 bg-darkbg rounded-xl border border-cardborder cursor-pointer hover:border-slate-600 transition";
+                item.onclick = (e) => {
+                    if (e.target.tagName !== 'BUTTON') {
+                        openAnalysisModal(stock.ticker);
+                    }
+                };
+
                 item.innerHTML = `
                     <div>
                         <h4 class="font-bold text-white">${stock.ticker} - ${stock.name}</h4>
@@ -522,18 +546,15 @@
                             <div class="font-mono text-white">$${stock.price.toFixed(2)}</div>
                             <div class="font-mono text-xs text-emerald-400 font-bold">${calculateYield(stock)}% Yield</div>
                         </div>
-                        <button onclick="toggleWatchlist('${stock.ticker}')" class="text-rose-400 hover:text-rose-300 text-xs font-semibold">Remove</button>
+                        <button onclick="toggleWatchlist('${stock.ticker}')" class="text-rose-400 text-xs font-semibold hover:underline">Remove</button>
                     </div>
                 `;
                 container.appendChild(item);
             });
         }
 
-        // Live Ticker Stream Simulation
-        function startPriceStream() {
+        function startLiveStream() {
             setInterval(() => {
-                if (!currentUser) return;
-
                 countdownSecs--;
                 if (countdownSecs <= 0) {
                     const randomIndex = Math.floor(Math.random() * stocks.length);
@@ -549,6 +570,11 @@
                     renderTable();
                     renderWatchlist();
 
+                    // If user is currently looking at this stock's modal, live update it too!
+                    if (selectedStockTicker === stock.ticker && !document.getElementById("analysisModal").classList.contains("hidden")) {
+                        openAnalysisModal(stock.ticker);
+                    }
+
                     const rowElem = document.getElementById(`row-${stock.ticker}`);
                     if (rowElem) {
                         rowElem.classList.remove("flash-up", "flash-down");
@@ -558,17 +584,8 @@
 
                     countdownSecs = 3;
                 }
-                document.getElementById("countdown").innerText = `${countdownSecs}s`;
+                document.getElementById("countdownTimer").innerText = `${countdownSecs}s`;
             }, 1000);
-        }
-
-        // Tab Switcher
-        function switchTab(tab) {
-            document.querySelectorAll("main > section").forEach(el => el.classList.add("hidden"));
-            document.querySelectorAll(".nav-btn").forEach(el => el.className = "nav-btn px-4 py-2 rounded-lg text-slate-400 hover:text-white transition");
-
-            document.getElementById(`view-${tab}`).classList.remove("hidden");
-            document.getElementById(`tab-${tab}`).className = "nav-btn px-4 py-2 rounded-lg bg-indigo-600 text-white transition";
         }
 
         function sortTable(column) {
